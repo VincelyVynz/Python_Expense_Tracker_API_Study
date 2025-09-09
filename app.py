@@ -21,6 +21,20 @@ def expenses():
 @app.route('/expenses', methods=['POST'])
 def add_expense():
     data = request.get_json()
+    #validation
+    if 'item' not in data or not isinstance(data['item'], str) or data['item'].strip() == "":
+        return jsonify({'error': "Invalid or missing 'item'"}), 400
+
+    if 'amount' not in data or not (isinstance(data['amount'], int) or isinstance(data['amount'], float)) or data[
+        'amount'] <= 0:
+        return jsonify({'error': "Invalid or missing 'amount'"}), 400
+
+    if 'category' not in data or not isinstance(data['category'], str) or data['category'].strip() == "":
+        return jsonify({'error': "Invalid or missing 'category'"}), 400
+
+    if 'date' not in data or not isinstance(data['date'], str) or data['date'].strip() == "":
+        return jsonify({'error': "Invalid or missing 'date'"}), 400
+
     item = data['item']
     amount = data['amount']
     category = data['category']
