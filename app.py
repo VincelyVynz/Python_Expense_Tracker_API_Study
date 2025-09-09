@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 import sqlite3
 app = Flask(__name__)
 @app.route('/')
@@ -18,8 +18,18 @@ def expenses():
     conn.close()
     return jsonify(expense_json)
 
-
-
-
+@app.route('/expenses', methods=['POST'])
+def add_expense():
+    data = request.get_json()
+    item = data['item']
+    amount = data['amount']
+    category = data['category']
+    date = data['date']
+    conn = sqlite3.connect('expense_tracker.db')
+    cursor = conn.cursor()
+    cursor.execute("INSERT INTO expenses (item, amount, category, date) VALUES (?,?,?,?)", (item, amount, category, date))
+    conn.commit()
+    conn.close()
+    return jsonify({"message": "Expense added successfully"}), 201
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
