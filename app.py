@@ -91,6 +91,27 @@ def update_expenses(id):
             conn.close()
 
 
+@app.route('/expenses/<int:id>', methods=['DELETE'])
+def delete_expenses(id):
+    conn = None
+    try:
+        conn = sqlite3.connect('expense_tracker.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+        DELETE FROM expenses
+        WHERE id = ?
+        """, (id,))
+        if cursor.rowcount == 0:
+            return jsonify({'error': "Expense not found"}), 404
+        else:
+            conn.commit()
+            return jsonify({"message": "Expense deleted successfully"}), 200
+
+    except sqlite3.Error as e:
+        return jsonify({'error': f"Something went wrong: {e}"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 
