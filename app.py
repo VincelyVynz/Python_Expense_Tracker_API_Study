@@ -1,5 +1,3 @@
-from logging import exception
-
 from flask import Flask, jsonify, request
 import sqlite3
 app = Flask(__name__)
@@ -48,7 +46,53 @@ def add_expense():
         conn.commit()
         conn.close()
         return jsonify({"message": "Expense added successfully"}), 201
-    except exception(Exception):
+
+    except Exception as e:
+        print(f"Error: {e}")
         return jsonify({'error': "Something went wrong"}), 500
+
+@app.route('/expenses/<int:id>', methods=['PUT'])
+def update_expenses(id):
+    data = request.get_json()
+    if not data:
+        return jsonify({'error': "Invalid or missing request."}), 400
+
+    try:
+        item = data['item']
+        amount = data['amount']
+        category = data['category']
+        date = data['date']
+
+    except KeyError as e:
+        return jsonify({'error': f"Invalid or missing: {e}"}), 400
+
+    conn = None
+
+    try:
+        conn = sqlite3.connect('expense_tracker.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+        UPDATE expenses
+        SET item= ?, amount = ?, category = ?, date = ?
+        WHERE id = ?
+        """, (item, amount, category, date, id))
+
+        if cursor.rowcount == 0:
+            return jsonify({'error': "Expense not found"}), 404
+        else:
+            conn.commit()
+            return jsonify({"message": "Expense updated successfully"}), 200
+
+    except sqlite3.Error as e:
+        return jsonify({'error': f"Something went wrong: {e}"}), 500
+
+    finally:
+        if conn:
+            conn.close()
+
+
+
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
